@@ -8,4 +8,3 @@ Imports: geojsonlint, geojsonsf, httr, jsonlite, keyring, leaflet, utils, xml2
 Suggests: covr, ggforce, ggplot2, googlePolylines, lwgeom, knitr, mapview, pkgdown, RColorBrewer, rmarkdown, roxygen2, sf, testthat, units
 Encoding: UTF-8
 LazyData: true
-VignetteBuilder: knitr
