@@ -2,18 +2,7 @@
 
 lm_analises<-function(f.model=Ozone~0+Solar.R+Temp,data_=airquality,
                       output.path=NULL,show.progress=TRUE,
-                      plot.labels="",weigth_negative=NULL){
-  pkgs<-c('dplyr','ggplot2','lmtest','car','xlsx2dfs','colf')
-  pkgs<-pkgs[pkgs%in%installed.packages()==FALSE]
-  
-  if(length(pkgs)>0&show.progress){
-    cat('Installing packages',paste0(pkgs,collapse = " and "))
-    install.packages(pkgs,quiet = TRUE)
-  }
-  library(dplyr)
-  library(ggplot2)
-  library(stats)
-  library(data.table)
+                      plot.labels="",force_positive=FALSE,weight_negative=NULL){
   
   drop_two_spaces<-function(char){
     gsub(pattern = "  ",replacement = " ",char)
@@ -23,13 +12,17 @@ lm_analises<-function(f.model=Ozone~0+Solar.R+Temp,data_=airquality,
   }
   
   model<-lm(formula = f.model,data = data_)
-  if(!is.null(weigth_negative)){
+  if(force_positive){
+    if(is.null(weight_negative)|weight_negative<=1){
+      warning("The weight_negative parameter must be a number greater than 1")
+      return()
+    }
     coefs<-model$coefficients[attr(terms(f.model),"term.labels")]
     min_negative<-attr(terms(f.model),"term.labels")[which.min(coefs)]
     model<-lm(formula = f.model,data = data_,
               weights = ifelse(
                 data_[,min_negative]>quantile(data_[,min_negative],0.75),
-                weigth_negative,1
+                weight_negative,1
               ))
   }
   
@@ -44,7 +37,8 @@ lm_analises<-function(f.model=Ozone~0+Solar.R+Temp,data_=airquality,
     ifelse(shapiro.test(model$residuals)$p>0.01,"Passou no teste shapiro de normalidade","Não passou no teste shapiro de normalidade"),'\n',
     ifelse(lmtest::bgtest(model)$p.value>0.05,"Passou no teste de homocedasticidade de Breusch-Godfrey","Não passou no teste de homocedasticidade de Breusch-Godfrey"),'\n',
     ifelse(car::durbinWatsonTest(model)$p>0.05,"Passou no teste de independência de Durbin Watson","Não passou no teste de independência de Durbin Watson"),'\n'
-  ) %>% cat()
+  ) %>% 
+    cat()
   
   if(is.null(output.path)){
     output.path<-getwd()
@@ -62,7 +56,11 @@ lm_analises<-function(f.model=Ozone~0+Solar.R+Temp,data_=airquality,
   }
   
   cat('\r','Saving output 1 of 4')
-  write.csv(capture.output(print(summary(model))),file=paste0(output.path,"/summary.txt"),row.names = F)
+  out_summary<-capture.output(print(summary(model)))
+  out_summary<-c(out_summary,ifelse(shapiro.test(model$residuals)$p>0.01,"Passou no teste shapiro de normalidade","Não passou no teste shapiro de normalidade"),
+                 ifelse(lmtest::bgtest(model)$p.value>0.05,"Passou no teste de homocedasticidade de Breusch-Godfrey","Não passou no teste de homocedasticidade de Breusch-Godfrey"),
+                 ifelse(car::durbinWatsonTest(model)$p>0.05,"Passou no teste de independência de Durbin Watson","Não passou no teste de independência de Durbin Watson"))
+  write.csv(out_summary,file=paste0(output.path,"/summary.txt"),row.names = F)
   
   residuals<-data.frame(id=1:length(model$residuals),residuos=model$residuals)
   
@@ -91,7 +89,7 @@ lm_analises<-function(f.model=Ozone~0+Solar.R+Temp,data_=airquality,
   qqnorm(model$residuals,main=main,xlab = "Quantis teóricos",ylab = "Quantis da amostra");qqline(model$residuals,col="red")
   dev.off()
   
-  
+  return(TRUE)
   
 }
 
