@@ -1,14 +1,16 @@
 
 
-
-
-get_google_buildings<-function(layer=NULL,output.format="csv"){
-  if(output.format%in%c("df","sf")==FALSE){
-    stop('Parameter output.format it must be "df" or "sf"')
+download_google_buildings<-function(layer,destiny_file=NULL){
+  output.format<-str_sub(destiny_file,start=str_locate(destiny_file,"\\.")[,1]+1)
+  if(output.format%in%c("csv","geojson")==FALSE){
+    stop('Output format it must be ".csv" or ".geojson"')
   }
-  if(is.character(feature)){
+  if(is.null(destiny_file)){
+    destiny_file<-tempfile(fileext = output.format)
+  }
+  if(is.character(layer)){
     cat("Getting OSM bbox",sep = "\n")
-    feature<-osmdata::getbb(place_name = feature,format_out = "sf_polygon")
+    feature<-osmdata::getbb(place_name = layer,format_out = "sf_polygon")
     if(nrow(feature)>1){
       cat("The OSM API returns more than 1 polygons","Do you wish to continue","1.Yes","2.No",sep = "\n")
       choice<-readline(prompt = "Choice: ")
@@ -27,7 +29,7 @@ get_google_buildings<-function(layer=NULL,output.format="csv"){
     print(feature)
   }
   
-  if(st_geometry_type(feature,by_geometry = F)%in%c("POLYGON","MULTIPOLYGON")==FALSE){
+  if(st_geometry_type(layer,by_geometry = F)%in%c("POLYGON","MULTIPOLYGON")==FALSE){
     cat("Getting layer bbox")
     feature<-st_as_sfc(st_bbox(feature))
     cat("Using:")
@@ -47,39 +49,30 @@ get_google_buildings<-function(layer=NULL,output.format="csv"){
   metadata<-st_as_sf(metadata,wkt="wkt",crs=4326,remove=F)
   filter<-st_filter(metadata,feature)
   for (i in 1:nrow(filter)) {
-    cat(paste0("Downloading tile ",i," of ",nrow(filter),"  Size: ",filter$size_mb[i],"mb"),sep = '\n')
+    cat(paste0("Downloading tile ",i," of ",nrow(filter),"  Size: ",filter$size_mb[i],"mb"),sep="\n")
     filegz<-tempfile(fileext = ".csv.gz")
     httr::GET(url=filter$tile_url[i],
               httr::write_disk(filegz))
     filecsv<-tempfile(fileext = ".csv")
     R.utils::gunzip(filegz,destname=filecsv)
-    if(i==1){
-      buildings<-fread(filecsv)
+    cat("Writing file ",i, " of ",nrow(filter))
+    if(output.format=="csv"){
+      fread(filecsv) %>% 
+        st_as_sf(wkt="geometry",crs=4326) %>% 
+        st_filter(feature) %>% 
+        mutate(wkt=st_as_text(geometry)) %>% 
+        st_drop_geometry() %>% 
+        as.data.frame() %>% 
+        fwrite(destiny_file,append=TRUE)
     }else{
-      buildings<-bind_rows(
-        buildings,
-        fread(filecsv)
-      )
+      fread(filecsv) %>% 
+      st_as_sf(wkt="geometry",crs=4326) %>% 
+        st_filter(feature) %>% 
+        st_write(destiny_file,append=TRUE)
     }
-  }
-  if(output.format=="df"){
-    st_as_sf(buildings,wkt="geometry",crs=4326) %>% 
-      st_filter(feature) %>% 
-      mutate(wkt=st_as_text(geometry)) %>% 
-      st_drop_geometry() %>% 
-      as.data.frame() %>% 
-      return()
-  }else{
-    st_as_sf(buildings,wkt="geometry",crs=4326) %>% 
-      st_filter(feature) %>% 
-      return()
-  }
-  
     
-  
-  
-  
-  
+    
+  }
   
 }
-a<-get_google_buildings("Aldeota - Fortaleza, CE")
+
