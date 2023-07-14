@@ -1,26 +1,28 @@
-\name{get_google_buildings}
-\alias{get_google_buildings}
-
+\name{download_google_building}
+\alias{download_google_building}
+%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Get Open Buildings from Google
+Download Open Buildings from Google
 }
 \description{
-This function takes a layer in sf or a place name and returns an sf with the Google Open Buildings buildings in the inserted layer
+This function takes a layer in sf or a place name and export an data with the Google Open Buildings buildings in the inserted layer
 (View https://sites.research.google/open-buildings/)
 }
 \usage{
-get_google_building(layer)
+download_google_building(layer,destiny_file=path)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{layer}{
 A sf object or a character. A layer or a place used to filter the buildings by location. When use sf, if the layer not is a POLYGON the st_bbox is used, note that this is less accurate and probably return unnecessary buildings.
 The place is inserted in OSM API and the polygon of place is used, note that OSM API can return more than one polygon, pass a sufficiently complete address to the function.
-For large area polygons the return can be too large too, try use download_google_buildings for best experience.
 }
-  \item{output.format}{
-A character. Default is "data.frame", the format of result make be "csv" or "sf"
+  \item{destiny_file}{
+A character. A path to a file with extension .csv or .geojson to save the outputs.
 }
+}
+\details{
+When use large polygons this functions save the output by tile which requires less RAM memory but may take longer.
 }
 \references{
 https://sites.research.google/open-buildings/
@@ -33,21 +35,25 @@ https://rspatialdata.github.io/osm.html
 %%  ~~further notes~~
 }
 
-
+%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-osmdata
+library(osmdata)
 https://sites.research.google/open-buildings/tiles.geojson
 }
 \examples{
-## The function is currently defined as
+
+
+The function is currently defined as
 
 poly_layer<-read_sf(path)
 
-get_google_buildings(layer = ploy_layer)
+download_google_buildings(layer = ploy_layer,destiny_file="file.csv")
 
-get_google_buildings(layer = "Fortaleza, CE")
-
+get_google_buildings(
+layer = "Fortaleza, CE",
+,destiny_file="file.csv"
+)
 
 
 }
