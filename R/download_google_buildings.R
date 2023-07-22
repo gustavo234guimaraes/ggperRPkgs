@@ -28,14 +28,16 @@ download_google_buildings<-function(layer,destiny_file=NULL){
     cat(" ",sep = "\n")
     cat("Using: ")
     print(feature)
+  }else{
+    if(st_geometry_type(layer,by_geometry = F)%in%c("POLYGON","MULTIPOLYGON")==FALSE){
+      cat("Getting layer bbox")
+      feature<-st_as_sfc(st_bbox(feature))
+      cat("Using:")
+      print(feature)
+    }
   }
   
-  if(st_geometry_type(layer,by_geometry = F)%in%c("POLYGON","MULTIPOLYGON")==FALSE){
-    cat("Getting layer bbox")
-    feature<-st_as_sfc(st_bbox(feature))
-    cat("Using:")
-    print(feature)
-  }
+  
   metadata<-rjson::fromJSON(file = "https://sites.research.google/open-buildings/tiles.geojson")
   
   metadata<-lapply(metadata$features, function(x){
