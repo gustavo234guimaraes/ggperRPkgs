@@ -44,7 +44,7 @@ https://sites.research.google/open-buildings/tiles.geojson
 
 poly_layer<-read_sf(path)
 
-get_google_buildings(layer = ploy_layer)
+get_google_buildings(layer = poly_layer)
 
 get_google_buildings(layer = "Fortaleza, CE")
 
