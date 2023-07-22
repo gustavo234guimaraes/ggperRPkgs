@@ -10,7 +10,8 @@ download_google_buildings<-function(layer,destiny_file=NULL){
   }
   if(is.character(layer)){
     cat("Getting OSM bbox",sep = "\n")
-    feature<-osmdata::getbb(place_name = layer,format_out = "sf_polygon")
+    feature<-osmdata::getbb(place_name = layer,format_out = "sf_polygon") %>% 
+      unique.data.frame() %>% st_as_sf()
     if(nrow(feature)>1){
       cat("The OSM API returns more than 1 polygons","Do you wish to continue","1.Yes","2.No",sep = "\n")
       choice<-readline(prompt = "Choice: ")

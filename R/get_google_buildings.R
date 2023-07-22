@@ -8,7 +8,8 @@ get_google_buildings<-function(layer=NULL,output.format="csv"){
   }
   if(is.character(feature)){
     cat("Getting OSM bbox",sep = "\n")
-    feature<-osmdata::getbb(place_name = feature,format_out = "sf_polygon")
+    feature<-osmdata::getbb(place_name = feature,format_out = "sf_polygon") %>% 
+      unique.data.frame() %>% st_as_sf()
     if(nrow(feature)>1){
       cat("The OSM API returns more than 1 polygons","Do you wish to continue","1.Yes","2.No",sep = "\n")
       choice<-readline(prompt = "Choice: ")
@@ -74,6 +75,11 @@ get_google_buildings<-function(layer=NULL,output.format="csv"){
       st_filter(feature) %>% 
       return()
   }
+  
+    
+  
+  
+  
   
   
 }
