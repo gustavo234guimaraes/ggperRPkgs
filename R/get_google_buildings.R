@@ -75,11 +75,6 @@ get_google_buildings<-function(layer=NULL,output.format="csv"){
       return()
   }
   
-    
-  
-  
-  
-  
   
 }
-a<-get_google_buildings("Aldeota - Fortaleza, CE")
+
