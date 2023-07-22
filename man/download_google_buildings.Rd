@@ -18,11 +18,13 @@ A sf object or a character. A layer or a place used to filter the buildings by l
 The place is inserted in OSM API and the polygon of place is used, note that OSM API can return more than one polygon, pass a sufficiently complete address to the function.
 }
   \item{destiny_file}{
-A character. A path to a file with extension .csv or .geojson to save the outputs.
+A character. A path to a file with extension csv, txt or geo formats to save the outputs (see details).
 }
 }
 \details{
 When use large polygons this functions save the output by tile which requires less RAM memory but may take longer.
+
+Output formats need be only of a list csv, txt, geojson, gpkg, kml or shp.
 }
 \references{
 https://sites.research.google/open-buildings/
