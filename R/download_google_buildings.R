@@ -1,9 +1,9 @@
 
 
-download_google_buildings<-function(layer,destiny_file=NULL){
+download_google_buildings<-function(layer,destiny_file=NULL,max_csv_gb=2){
   output.format<-str_sub(destiny_file,start=str_locate(destiny_file,"\\.")[,1]+1)
-  if(output.format%in%c("csv","geojson")==FALSE){
-    stop('Output format it must be ".csv" or ".geojson"')
+  if(output.format%in%c("csv","txt","geojson","kml","shp","gpkg")==FALSE){
+    stop('Invalid output format, see details')
   }
   if(is.null(destiny_file)){
     destiny_file<-tempfile(fileext = output.format)
@@ -26,11 +26,11 @@ download_google_buildings<-function(layer,destiny_file=NULL){
     }
     
     cat(" ",sep = "\n")
-    cat("Using: ")
+    cat("Using: ",sep = "\n")
     print(feature)
   }else{
     if(st_geometry_type(layer,by_geometry = F)%in%c("POLYGON","MULTIPOLYGON")==FALSE){
-      cat("Getting layer bbox")
+      cat("Getting layer bbox",sep = "\n")
       feature<-st_as_sfc(st_bbox(feature))
       cat("Using:")
       print(feature)
@@ -58,21 +58,74 @@ download_google_buildings<-function(layer,destiny_file=NULL){
               httr::write_disk(filegz))
     filecsv<-tempfile(fileext = ".csv")
     R.utils::gunzip(filegz,destname=filecsv)
-    cat("Writing file ",i, " of ",nrow(filter))
-    if(output.format=="csv"){
-      fread(filecsv) %>% 
-        st_as_sf(wkt="geometry",crs=4326) %>% 
-        st_filter(feature) %>% 
-        mutate(wkt=st_as_text(geometry)) %>% 
-        st_drop_geometry() %>% 
-        as.data.frame() %>% 
-        fwrite(destiny_file,append=TRUE)
+    cat("Writing file ",i, " of ",nrow(filter),sep = "\n")
+    cat("\n")
+    box<-st_bbox(st_buffer(feature,2000))
+    if(memuse::Sys.meminfo()$totalram@size<16){
+      if(memuse::Sys.meminfo()$totalram@size<7){
+        maxlines=1000000
+      }else{
+        maxlines=2000000
+      }
+      nlines<-length(count.fields(filecsv))
+      cat("This building data is too large, the reading process will splitted",sep="\n")
+      nlines<-length(count.fields(filecsv))
+      skips<-trunc(nlines/maxlines)
+      skips<-cumsum(rep(maxlines,skips))
+      skips<-c(0,skips)
+      for (i in 1:length(skips)) {
+        cat(paste0("Processing step ",i," of ",length(skips)),sep = "\n")
+        cat("\n")
+        if(output.format%in%c("csv","txt")){
+          result<-fread(filecsv,skip = skips[i],nrows = maxlines) %>% 
+            set_col_names(names=c("latitude","longitude","area_in_meters","confidence","geometry","full_plus_code")) %>% 
+            filter(latitude>min(box[c(2,4)])&latitude<max(box[c(2,4)])) %>% 
+            filter(longitude>min(box[c(1,3)])&longitude<max(box[c(1,3)])) %>% 
+            st_as_sf(wkt="geometry",crs=4326) %>% 
+            st_filter(feature) %>% 
+            mutate(wkt=st_as_text(geometry)) %>% 
+            st_drop_geometry() %>% 
+            as.data.frame()
+          if(nrow(result)>0){
+            fwrite(result,destiny_file,append=TRUE)
+          }
+            
+        }else{
+          result<-fread(filecsv,skip = skips[i],nrows = maxlines) %>% 
+            set_col_names(names=c("latitude","longitude","area_in_meters","confidence","geometry","full_plus_code")) %>% 
+            filter(latitude>min(box[c(2,4)])&latitude<max(box[c(2,4)])) %>% 
+            filter(longitude>min(box[c(1,3)])&longitude<max(box[c(1,3)])) %>% 
+            st_as_sf(wkt="geometry",crs=4326) %>% 
+            st_filter(feature)
+          if(nrow(result)>0){
+            st_write(result,destiny_file,append=TRUE)
+          }
+            
+        }
+        
+        
+      }
     }else{
-      fread(filecsv) %>% 
-      st_as_sf(wkt="geometry",crs=4326) %>% 
-        st_filter(feature) %>% 
-        st_write(destiny_file,append=TRUE)
+      if(output.format%in%c("csv","txt")){
+        fread(filecsv) %>% 
+          filter(latitude>min(box[c(2,4)])&latitude<max(box[c(2,4)])) %>% 
+          filter(longitude>min(box[c(1,3)])&longitude>max(box[c(1,3)])) %>% 
+          st_as_sf(wkt="geometry",crs=4326) %>% 
+          st_filter(feature) %>% 
+          mutate(wkt=st_as_text(geometry)) %>% 
+          st_drop_geometry() %>% 
+          as.data.frame() %>% 
+          fwrite(destiny_file,append=TRUE)
+      }else{
+        fread(filecsv) %>% 
+          filter(latitude>min(box[c(2,4)])&latitude<max(box[c(2,4)])) %>% 
+          filter(longitude>min(box[c(1,3)])&longitude>max(box[c(1,3)])) %>% 
+          st_as_sf(wkt="geometry",crs=4326) %>% 
+          st_filter(feature) %>% 
+          st_write(destiny_file,append=TRUE)
+      }
     }
+    
     
     
   }
