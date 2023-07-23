@@ -55,7 +55,7 @@ download_google_buildings<-function(layer,destiny_file=NULL){
     cat(paste0("Downloading tile ",i," of ",nrow(filter),"  Size: ",filter$size_mb[i],"mb"),sep="\n")
     filegz<-tempfile(fileext = ".csv.gz")
     httr::GET(url=filter$tile_url[i],
-              httr::write_disk(filegz))
+              httr::write_disk(filegz),progress(type = "down"),config(max_recv_speed_large = filter$size_mb*1000))
     filecsv<-tempfile(fileext = ".csv")
     R.utils::gunzip(filegz,destname=filecsv)
     cat(paste0("Writing file ",i, " of ",nrow(filter)),sep = "\n")
@@ -93,8 +93,8 @@ download_google_buildings<-function(layer,destiny_file=NULL){
         }else{
           result<-fread(filecsv,skip = skips[i],nrows = maxlines,
                         col.names = c("latitude","longitude","area_in_meters",
-                                      "confidence","geometry","full_plus_code")) %>% 
-            dplyr::filter('latitude'>min(box[c(2,4)])&'latitude'<max(box[c(2,4)])) %>% 
+                                      "confidence","geometry","full_plus_code"))
+          result<-dplyr::filter(result, 'latitude' > min(box[c(2,4)]) & 'latitude' < max(box[c(2,4)])) %>% 
             dplyr::filter('longitude'>min(box[c(1,3)])&'longitude'<max(box[c(1,3)])) %>% 
             st_as_sf(wkt="geometry",crs=4326) %>% 
             st_filter(feature)
@@ -109,8 +109,8 @@ download_google_buildings<-function(layer,destiny_file=NULL){
     }else{
       if(output.format%in%c("csv","txt")){
         fread(filecsv) %>% 
-          filter(latitude>min(box[c(2,4)])&latitude<max(box[c(2,4)])) %>% 
-          filter(longitude>min(box[c(1,3)])&longitude>max(box[c(1,3)])) %>% 
+          dplyr::filter('latitude'>min(box[c(2,4)])&'latitude'<max(box[c(2,4)])) %>% 
+          dplyr::filter('longitude'>min(box[c(1,3)])&'longitude'<max(box[c(1,3)])) %>% 
           st_as_sf(wkt="geometry",crs=4326) %>% 
           st_filter(feature) %>% 
           mutate(wkt=st_as_text(geometry)) %>% 
@@ -119,8 +119,8 @@ download_google_buildings<-function(layer,destiny_file=NULL){
           fwrite(destiny_file,append=TRUE)
       }else{
         fread(filecsv) %>% 
-          filter(latitude>min(box[c(2,4)])&latitude<max(box[c(2,4)])) %>% 
-          filter(longitude>min(box[c(1,3)])&longitude>max(box[c(1,3)])) %>% 
+          dplyr::filter('latitude'>min(box[c(2,4)])&'latitude'<max(box[c(2,4)])) %>% 
+          dplyr::filter('longitude'>min(box[c(1,3)])&'longitude'<max(box[c(1,3)])) %>% 
           st_as_sf(wkt="geometry",crs=4326) %>% 
           st_filter(feature) %>% 
           st_write(destiny_file,append=TRUE)
@@ -130,6 +130,6 @@ download_google_buildings<-function(layer,destiny_file=NULL){
     
     
   }
-  
+  cat("Done!",sep = "\n")
 }
 
