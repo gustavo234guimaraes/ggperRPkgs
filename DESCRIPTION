@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Gustavo Guimarães
 Maintainer: Gustavo Guimarães <gustavo234guimaraes@gmail.com>
 Description: The package host personalized packages for personal use.
-Imports: dplyr, ggplot2, stats, data.table, sf, leaflet, utils, readxl, xlsx2dfs, exiftoolr, stringr, lmtest, car, colf, osmdata, memuse, rjson, osmextract, httr
+Imports: ggplot2, stats, data.table, sf, leaflet, utils, readxl, xlsx2dfs, exiftoolr, stringr, lmtest, car, colf, osmdata, dplyr, memuse, rjson, osmextract, httr
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
