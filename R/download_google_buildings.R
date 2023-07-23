@@ -93,8 +93,8 @@ download_google_buildings<-function(layer,destiny_file=NULL){
         }else{
           result<-fread(filecsv,skip = skips[i],nrows = maxlines,
                         col.names = c("latitude","longitude","area_in_meters",
-                                      "confidence","geometry","full_plus_code"))
-          result<-dplyr::filter(result, 'latitude' > min(box[c(2,4)]) & 'latitude' < max(box[c(2,4)])) %>% 
+                                      "confidence","geometry","full_plus_code")) %>% 
+            dplyr::filter(result, 'latitude' > min(box[c(2,4)]) & 'latitude' < max(box[c(2,4)])) %>% 
             dplyr::filter('longitude'>min(box[c(1,3)])&'longitude'<max(box[c(1,3)])) %>% 
             st_as_sf(wkt="geometry",crs=4326) %>% 
             st_filter(feature)
