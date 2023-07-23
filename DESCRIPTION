@@ -1,7 +1,7 @@
 Package: ggperRPkgs
 Type: Package
 Title: Personalized packages from Gustavo Guimarães
-Version: 0.1.0
+Version: 0.1.1
 Author: Gustavo Guimarães
 Maintainer: Gustavo Guimarães <gustavo234guimaraes@gmail.com>
 Description: The package host personalized packages for personal use.
