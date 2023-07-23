@@ -61,7 +61,7 @@ download_google_buildings<-function(layer,destiny_file=NULL){
     cat(paste0("Writing file ",i, " of ",nrow(filter)),sep = "\n")
     cat("\n")
     box<-st_bbox(st_buffer(feature,2000))
-    if(memuse::Sys.meminfo()$totalram@size<16){
+    if(memuse::Sys.meminfo()$totalram@size<16&file.info(filecsv)$size>4000000|memuse::Sys.meminfo()$totalram@size<7&file.info(filecsv)$size>2500000){
       if(memuse::Sys.meminfo()$totalram@size<7){
         maxlines=1000000
       }else{
@@ -76,8 +76,9 @@ download_google_buildings<-function(layer,destiny_file=NULL){
       for (i in 1:length(skips)) {
         cat(paste0("Processing step ",i," of ",length(skips)),sep = "\n")
         if(output.format%in%c("csv","txt")){
-          result<-fread(filecsv,skip = skips[i],nrows = maxlines) %>% 
-            set_col_names(names=c("latitude","longitude","area_in_meters","confidence","geometry","full_plus_code")) %>% 
+          result<-fread(filecsv,skip = skips[i], nrows = maxlines,
+                        col.names = c("latitude","longitude","area_in_meters",
+                                      "confidence","geometry","full_plus_code")) %>% 
             filter(latitude>min(box[c(2,4)])&latitude<max(box[c(2,4)])) %>% 
             filter(longitude>min(box[c(1,3)])&longitude<max(box[c(1,3)])) %>% 
             st_as_sf(wkt="geometry",crs=4326) %>% 
@@ -90,8 +91,9 @@ download_google_buildings<-function(layer,destiny_file=NULL){
           }
             
         }else{
-          result<-fread(filecsv,skip = skips[i],nrows = maxlines) %>% 
-            set_col_names(names=c("latitude","longitude","area_in_meters","confidence","geometry","full_plus_code")) %>% 
+          result<-fread(filecsv,skip = skips[i],nrows = maxlines,
+                        col.names = c("latitude","longitude","area_in_meters",
+                                      "confidence","geometry","full_plus_code")) %>% 
             filter(latitude>min(box[c(2,4)])&latitude<max(box[c(2,4)])) %>% 
             filter(longitude>min(box[c(1,3)])&longitude<max(box[c(1,3)])) %>% 
             st_as_sf(wkt="geometry",crs=4326) %>% 
