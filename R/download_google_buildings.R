@@ -79,8 +79,8 @@ download_google_buildings<-function(layer,destiny_file=NULL){
           result<-fread(filecsv,skip = skips[i], nrows = maxlines,
                         col.names = c("latitude","longitude","area_in_meters",
                                       "confidence","geometry","full_plus_code")) %>% 
-            filter('latitude'>min(box[c(2,4)])&'latitude'<max(box[c(2,4)])) %>% 
-            filter('longitude'>min(box[c(1,3)])&'longitude'<max(box[c(1,3)])) %>% 
+            dplyr::filter('latitude'>min(box[c(2,4)])&'latitude'<max(box[c(2,4)])) %>% 
+            dplyr::filter('longitude'>min(box[c(1,3)])&'longitude'<max(box[c(1,3)])) %>% 
             st_as_sf(wkt="geometry",crs=4326) %>% 
             st_filter(feature) %>% 
             mutate(wkt=st_as_text(geometry)) %>% 
@@ -94,8 +94,8 @@ download_google_buildings<-function(layer,destiny_file=NULL){
           result<-fread(filecsv,skip = skips[i],nrows = maxlines,
                         col.names = c("latitude","longitude","area_in_meters",
                                       "confidence","geometry","full_plus_code")) %>% 
-            filter(latitude>min(box[c(2,4)])&latitude<max(box[c(2,4)])) %>% 
-            filter(longitude>min(box[c(1,3)])&longitude<max(box[c(1,3)])) %>% 
+            dplyr::filter('latitude'>min(box[c(2,4)])&'latitude'<max(box[c(2,4)])) %>% 
+            dplyr::filter('longitude'>min(box[c(1,3)])&'longitude'<max(box[c(1,3)])) %>% 
             st_as_sf(wkt="geometry",crs=4326) %>% 
             st_filter(feature)
           if(nrow(result)>0){
